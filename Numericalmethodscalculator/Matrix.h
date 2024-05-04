@@ -28,6 +28,14 @@ public:
 		data = _data;
 	};
 
+	Complex& at(int row, int col) {
+		return data[row * cols + col];
+	}
+
+	const Complex& at(int row, int col) const {
+		return data[row * cols + col];
+	}
+
 	/**
 	* Operator adding matrices
 	* @param ref to const matrix
@@ -76,9 +84,18 @@ public:
 	*/
 	Matrix& operator~() const;
 
-	Matrix& qr() const;
+	void qr_decomposition() const;
+
+	std::vector<Complex> qralgorithm();
 
 	Matrix& shur_decomp() const;
+
+	/**
+	* Returns the transpose of the matrix
+	* @param nothing
+	* @return Matrix
+	*/
+	Matrix& t();
 
 
 
@@ -205,6 +222,100 @@ Matrix operator*(Matrix left, const Matrix& right) {
 	return left *= right;
 }
 
+void qr_decomposition(Matrix& Q, Matrix& R){
+	// Initialize Q as the identity matrix and R as the input matrix
+	Q = Matrix(rows, cols);
+	R = *this;
 
+	// Initialize Q as an identity matrix
+	for (int i = 0; i < rows; i++) {
+		Q.at(i, i) = Complex(1, 0);
+	}
+
+	// Perform QR decomposition using the Gram-Schmidt process
+	for (int k = 0; k < cols; k++) {
+		// Calculate the norm of the current column
+		Complex norm(0, 0);
+		for (int i = 0; i < rows; i++) {
+			norm = norm + (R.at(i, k) * R.at(i, k).conjugate());
+		}
+		norm = Complex(std::sqrt(norm.real), 0);
+
+		// Normalize the current column and store it in Q
+		for (int i = 0; i < rows; i++) {
+			Q.at(i, k) = R.at(i, k) / norm;
+		}
+
+		// Orthogonalize the remaining columns
+		for (int j = k + 1; j < cols; j++) {
+			Complex dotProduct(0, 0);
+			for (int i = 0; i < rows; i++) {
+				dotProduct = dotProduct + (Q.at(i, k) * R.at(i, j));
+			}
+
+			// Subtract the projection of the j-th column on the k-th column
+			for (int i = 0; i < rows; i++) {
+				R.at(i, j) = R.at(i, j) - (dotProduct * Q.at(i, k));
+			}
+		}
+	}
+
+}
+
+std::vector<Complex> Matrix::qralgorithm() {
+	// Check if the matrix is square
+	if (rows != cols) {
+		std::cerr << "Matrix must be square for QR algorithm." << std::endl;
+		return {};
+	}
+
+	// Define convergence tolerance and maximum iterations
+	const double tolerance = 1e-9;
+	int maxIterations = 1000;
+
+	// Copy the original matrix
+	Matrix currentMatrix = *this;
+
+	// Iteratively perform QR decomposition and update the matrix
+	for (int iter = 0; iter < maxIterations; iter++) {
+		// Perform QR decomposition
+		Matrix Q(rows, cols);
+		Matrix R(rows, cols);
+		currentMatrix.qrDecomposition(Q, R);
+
+		// Update the matrix: currentMatrix = R * Q
+		Matrix newMatrix(rows, cols);
+		
+		newMatrix = R * Q;
+
+		// Check for convergence
+		bool converged = true;
+		for (int i = 0; i < rows - 1; i++) {
+			for (int j = i + 1; j < cols; j++) {
+				if (newMatrix.at(i, j).abs() > tolerance) {
+					converged = false;
+					break;
+				}
+			}
+		}
+
+		// Update the matrix
+		currentMatrix = newMatrix;
+
+		// If converged, break the loop
+		if (converged) {
+			break;
+		}
+	}
+
+	// Extract the eigenvalues from the diagonal of the final matrix
+	std::vector<Complex> eigenvalues;
+	for (int i = 0; i < rows; i++) {
+		eigenvalues.push_back(currentMatrix.at(i, i));
+	}
+
+	return eigenvalues;
+	 
+}
 
 #endif 
