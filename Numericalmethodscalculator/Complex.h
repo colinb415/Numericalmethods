@@ -11,7 +11,6 @@
 *
 */
 class Complex {
-private:
 	double real = 0; // private member variables real and imagianry
 	double imaginary = 0;
 public:
@@ -29,6 +28,20 @@ public:
 	@return complex object
 	*/
 	Complex(const std::string& input);
+
+	Complex& operator=(const Complex& other) {
+		// Check for self-assignment
+		if (this == &other) {
+			return *this; // Return the current instance (no-op)
+		}
+
+		// Assign values from the other instance
+		real = other.real;
+		imaginary = other.imaginary;
+
+		// Return the current instance for chaining
+		return *this;
+	}
 
 
 	/**

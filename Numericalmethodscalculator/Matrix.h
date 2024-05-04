@@ -28,6 +28,19 @@ public:
 		data = _data;
 	};
 
+	Matrix& operator=(const Matrix& other) {
+		if (this == &other) {
+			return *this; // Return the current instance (no-op)
+		}
+
+		if (this->col != other.col || this->row != other.col) {
+			throw invalid_argument("The matrices are not the same size so you can not assign");
+		}
+
+		this->data = other.data;
+		return *this;
+	}
+
 	Complex& at(int row, int col) {
 		return data[row * cols + col];
 	}
