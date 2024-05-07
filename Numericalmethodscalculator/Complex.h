@@ -4,6 +4,7 @@
 #include<stdexcept>
 #include<iostream>
 #include<sstream>
+#include<cmath>
 
 /**
 *
@@ -11,9 +12,9 @@
 *
 */
 class Complex {
+public:
 	double real = 0; // private member variables real and imagianry
 	double imaginary = 0;
-public:
 	/**
 	constexpr constructor creating complex object
 	@param none, one or two doubles
@@ -43,6 +44,9 @@ public:
 		return *this;
 	}
 
+	Complex abs() const{
+		return Complex(std::abs(this->real), std::abs(this->imaginary));
+	}
 
 	/**
 	constexpr unary operator adding complex object
